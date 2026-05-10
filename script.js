@@ -7,44 +7,39 @@ async function handleDownload() {
         return;
     }
 
-    resultDiv.innerHTML = "<p>Sedang memproses... Tunggu sebentar ya.</p>";
+    resultDiv.innerHTML = "<p>Sedang memproses lewat Zivofly... Tunggu sebentar.</p>";
 
-    const options = {
-        method: 'GET',
-        headers: {
-            // API Key Anda sudah saya pasang di sini
-            'X-RapidAPI-Key': 'rbsidT5rQ', 
-            'X-RapidAPI-Host': 'social-download-all-in-one.p.rapidapi.com'
-        }
-    };
+    // Konfigurasi khusus Zivofly
+    // API KEY: rbsidT5rQ
+    const apiKey = 'rbsidT5rQ'; 
+    const apiUrl = `https://api.zivofly.com/api/v1/download?url=${encodeURIComponent(urlInput)}&key=${apiKey}`;
 
     try {
-        const response = await fetch(`https://social-download-all-in-one.p.rapidapi.com/v1/social/autodetect?url=${encodeURIComponent(urlInput)}`, options);
+        const response = await fetch(apiUrl);
         const data = await response.json();
 
-        // Logika untuk membaca data 'medias' dari API
-        if (data.medias && data.medias.length > 0) {
-            // Mengambil link video pertama (biasanya HD / No Watermark)
-            const videoLink = data.medias[0].url;
-            const title = data.title || "Video Berhasil Ditemukan";
+        console.log(data); // Untuk cek hasil di console
+
+        if (data.status === "success" || data.data) {
+            // Zivofly biasanya mengembalikan data di dalam objek 'data'
+            const videoData = data.data;
+            const videoLink = videoData.url || videoData.main_url;
+            const title = videoData.title || "Video Berhasil Ditemukan";
 
             resultDiv.innerHTML = `
-                <div style="background: #f0f9ff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; text-align: center;">
-                    <p style="font-weight: bold; margin-bottom: 10px; color: #0369a1;">${title}</p>
+                <div style="background: #f0fdf4; padding: 20px; border-radius: 12px; border: 1px solid #bbf7d0; text-align: center;">
+                    <p style="font-weight: bold; margin-bottom: 10px; color: #166534;">${title}</p>
                     <a href="${videoLink}" target="_blank" rel="noopener noreferrer" 
                        style="display: inline-block; background: #22c55e; color: white; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-weight: bold;">
                        ⬇️ DOWNLOAD SEKARANG
                     </a>
-                    <p style="font-size: 11px; color: #64748b; margin-top: 15px;">
-                        Tips: Jika video hanya terputar, klik titik tiga (⋮) di pojok video lalu pilih "Download".
-                    </p>
                 </div>
             `;
         } else {
-            resultDiv.innerHTML = "<p style='color: #ef4444;'>Maaf, video tidak ditemukan. Pastikan link benar dan akun tidak di-private.</p>";
+            resultDiv.innerHTML = `<p style='color: #ef4444;'>Gagal: ${data.message || "Video tidak ditemukan"}</p>`;
         }
     } catch (error) {
         console.error(error);
-        resultDiv.innerHTML = "<p style='color: #ef4444;'>Terjadi kesalahan koneksi atau kuota API habis.</p>";
+        resultDiv.innerHTML = "<p style='color: #ef4444;'>Terjadi kesalahan koneksi ke server Zivofly.</p>";
     }
 }
