@@ -13,7 +13,7 @@ async function handleDownload() {
         method: 'GET',
         headers: {
             // API Key Anda sudah saya pasang di sini
-            'X-RapidAPI-Key': '56a6de5ca6msh5f955175b59c8b6p195', 
+            'X-RapidAPI-Key': 'rbsidT5rQ', 
             'X-RapidAPI-Host': 'social-download-all-in-one.p.rapidapi.com'
         }
     };
