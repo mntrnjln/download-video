@@ -7,39 +7,44 @@ async function handleDownload() {
         return;
     }
 
-    resultDiv.innerHTML = "<p>Sedang mencari video... Mohon tunggu.</p>";
+    resultDiv.innerHTML = "<p>Sedang memproses... Tunggu sebentar ya.</p>";
 
-    // Konfigurasi API (Contoh menggunakan RapidAPI)
     const options = {
         method: 'GET',
         headers: {
-            'X-RapidAPI-Key': '56a6de5ca6msh5f955175b59c8b6p195...', // Ganti dengan Key dari RapidAPI
+            // API Key Anda sudah saya pasang di sini
+            'X-RapidAPI-Key': '56a6de5ca6msh5f955175b59c8b6p195', 
             'X-RapidAPI-Host': 'social-download-all-in-one.p.rapidapi.com'
         }
     };
 
     try {
-        // Memanggil API untuk memproses link
         const response = await fetch(`https://social-download-all-in-one.p.rapidapi.com/v1/social/autodetect?url=${encodeURIComponent(urlInput)}`, options);
         const data = await response.json();
 
-        if (data.url || data.links) {
-            // Jika berhasil, tampilkan tombol download asli
-            const videoLink = data.url || data.links[0].link;
+        // Logika untuk membaca data 'medias' dari API
+        if (data.medias && data.medias.length > 0) {
+            // Mengambil link video pertama (biasanya HD / No Watermark)
+            const videoLink = data.medias[0].url;
+            const title = data.title || "Video Berhasil Ditemukan";
+
             resultDiv.innerHTML = `
-                <div style="background: #e7f3ff; padding: 15px; border-radius: 10px;">
-                    <p>✅ Video Ditemukan!</p>
-                    <a href="${videoLink}" target="_blank" download 
-                       style="display: inline-block; background: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">
-                       Klik untuk Simpan Video
+                <div style="background: #f0f9ff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; text-align: center;">
+                    <p style="font-weight: bold; margin-bottom: 10px; color: #0369a1;">${title}</p>
+                    <a href="${videoLink}" target="_blank" rel="noopener noreferrer" 
+                       style="display: inline-block; background: #22c55e; color: white; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-weight: bold;">
+                       ⬇️ DOWNLOAD SEKARANG
                     </a>
+                    <p style="font-size: 11px; color: #64748b; margin-top: 15px;">
+                        Tips: Jika video hanya terputar, klik titik tiga (⋮) di pojok video lalu pilih "Download".
+                    </p>
                 </div>
             `;
         } else {
-            resultDiv.innerHTML = "<p>Gagal mengambil video. Pastikan link benar dan publik.</p>";
+            resultDiv.innerHTML = "<p style='color: #ef4444;'>Maaf, video tidak ditemukan. Pastikan link benar dan akun tidak di-private.</p>";
         }
     } catch (error) {
         console.error(error);
-        resultDiv.innerHTML = "<p>Terjadi kesalahan koneksi ke server.</p>";
+        resultDiv.innerHTML = "<p style='color: #ef4444;'>Terjadi kesalahan koneksi atau kuota API habis.</p>";
     }
 }
