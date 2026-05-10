@@ -7,39 +7,52 @@ async function handleDownload() {
         return;
     }
 
-    resultDiv.innerHTML = "<p>Sedang memproses lewat Zivofly... Tunggu sebentar.</p>";
+    resultDiv.innerHTML = "<p>Sedang menganalisis link dan memproses... Tunggu sebentar.</p>";
 
-    // Konfigurasi khusus Zivofly
-    // API KEY: rbsidT5rQ
-    const apiKey = 'rbsidT5rQ'; 
-    const apiUrl = `https://api.zivofly.com/api/v1/download?url=${encodeURIComponent(urlInput)}&key=${apiKey}`;
+    let apiUrl = "";
+    let platform = "";
+
+    // Logika Deteksi Otomatis berdasarkan Link
+    if (urlInput.includes("tiktok.com")) {
+        apiUrl = `https://api.fromscratch.web.id/v1/api/down/tiktok?url=${encodeURIComponent(urlInput)}`;
+        platform = "TikTok";
+    } else if (urlInput.includes("twitter.com") || urlInput.includes("x.com")) {
+        apiUrl = `https://api.fromscratch.web.id/v1/api/down/twitter?url=${encodeURIComponent(urlInput)}`;
+        platform = "Twitter/X";
+    } else if (urlInput.includes("instagram.com")) {
+        apiUrl = `https://api.fromscratch.web.id/v1/api/down/instagram?url=${encodeURIComponent(urlInput)}`;
+        platform = "Instagram";
+    } else {
+        resultDiv.innerHTML = "<p style='color: orange;'>Maaf, saat ini hanya mendukung TikTok, Twitter, dan Instagram.</p>";
+        return;
+    }
 
     try {
         const response = await fetch(apiUrl);
         const data = await response.json();
 
-        console.log(data); // Untuk cek hasil di console
-
-        if (data.status === "success" || data.data) {
-            // Zivofly biasanya mengembalikan data di dalam objek 'data'
-            const videoData = data.data;
-            const videoLink = videoData.url || videoData.main_url;
-            const title = videoData.title || "Video Berhasil Ditemukan";
+        // Mengambil data hasil (Biasanya di data.result)
+        if (data.status === true || data.result) {
+            const res = data.result;
+            
+            // Mencari link video (Bisa berbeda tiap platform, kita buat fleksibel)
+            const downloadLink = res.video || res.url || (res.medias && res.medias[0].url);
+            const title = res.title || `Video ${platform} Berhasil Diambil`;
 
             resultDiv.innerHTML = `
-                <div style="background: #f0fdf4; padding: 20px; border-radius: 12px; border: 1px solid #bbf7d0; text-align: center;">
-                    <p style="font-weight: bold; margin-bottom: 10px; color: #166534;">${title}</p>
-                    <a href="${videoLink}" target="_blank" rel="noopener noreferrer" 
-                       style="display: inline-block; background: #22c55e; color: white; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-weight: bold;">
-                       ⬇️ DOWNLOAD SEKARANG
+                <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center;">
+                    <p style="font-weight: bold; margin-bottom: 10px; color: #1e293b;">${title}</p>
+                    <a href="${downloadLink}" target="_blank" rel="noopener noreferrer" 
+                       style="display: inline-block; background: #2563eb; color: white; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-weight: bold;">
+                       ⬇️ DOWNLOAD VIDEO ${platform.toUpperCase()}
                     </a>
                 </div>
             `;
         } else {
-            resultDiv.innerHTML = `<p style='color: #ef4444;'>Gagal: ${data.message || "Video tidak ditemukan"}</p>`;
+            resultDiv.innerHTML = `<p style='color: #ef4444;'>Gagal mengambil data dari ${platform}. Pastikan link benar.</p>`;
         }
     } catch (error) {
         console.error(error);
-        resultDiv.innerHTML = "<p style='color: #ef4444;'>Terjadi kesalahan koneksi ke server Zivofly.</p>";
+        resultDiv.innerHTML = `<p style='color: #ef4444;'>Terjadi kesalahan koneksi ke API ${platform}.</p>`;
     }
 }
